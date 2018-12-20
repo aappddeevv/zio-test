@@ -34,6 +34,9 @@ Conclusions:
   like checked exceptions, which I don't think are bad except that java did not
   have the language support to make it a useful feature when they introduced it
   into java. Checked exceptions have a bad reputation for that reason.
+* It's not strictly necessary to parameterize on `E` but if you parameterize on
+  `E`, you need to provide the ability to create an `E` (which is what the
+  `mkError` functions do in each layer).
   
 ## Test 2
 
@@ -58,6 +61,6 @@ units-of-work.
 * ZIO does not preclude you jumping the stack if you want to still handle things
   the traditional way.
 
-Probably the most important conclusion is that an explicit `E` in `IO` gives you
-an option of handling errors differently *if* you want to. So choices is good
-given that it is not overly complicated.
+Probably the most important conclusion is that a type parameter `E` in `IO`
+gives you an option of handling errors differently *if* you want to. So choices
+are good given that it is not overly complicated.
