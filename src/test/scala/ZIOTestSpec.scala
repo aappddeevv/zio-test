@@ -11,11 +11,14 @@ import odata._
 import http._
 import backend._
 
-trait ZIOTestSpec {
+class ZIOTestSpec extends AsyncFlatSpec {
   val rts = new RTS { }
 
-  implicit class ToFuture(io: IO[Nothing,Assertion]) {
+  implicit class ToFuture[E](io: IO[E, Assertion]) {
     def toTestFuture: Future[Assertion] =
-      rts.unsafeRun(io.toFuture)
+      rts.unsafeRun(io.redeemPure(
+        _ => fail,
+        identity
+      ).toFuture)
   }
 }
