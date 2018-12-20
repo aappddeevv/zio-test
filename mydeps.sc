@@ -12,4 +12,6 @@ import cats.implicits._
 //implicit val timer = IO.timer(scala.concurrent.ExecutionContext.Implicits.global)
 //implicit val cs = IO.contextShift(global)
 import scalaz.zio._
+object rts extends RTS{}
+
 
