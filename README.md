@@ -1,6 +1,7 @@
 # ZIO bifunctor testbed
 
-Does ZIO's bifunctor design offer a better abstraction in some cases?
+Does ZIO's bifunctor design offer a better abstraction? And if so, when does
+work best?
 
 This repo is a simple testbed to explore that question.
 
@@ -9,6 +10,7 @@ only an `E` parameter.
 
 
 ## Test1 - Multi-layer web client.
+
 Create 3 layers of an HTTP client based on http4s--just the essentials. A client
 is really a Kleisli `HttRequest => IO[E, HttpResponse]`.
 
@@ -49,18 +51,26 @@ Some conclusions:
 * In highly failure prone environments where the IO is likely to fail more
 frequently than not *and* you want to recover in architecture layers other than
 the outermost layer, an explicit `E` seems to improve code reasoning.
-* If you are working on batch oriented programs whose failure model is to recover
-by restarting the program, the explicit `E` is less important.
-* Errors should be handled at units-of-work (roughly speaking) such as the "record
-processing level" or the program level. An explicit `E` helps you manage errors
-across units-of-work if your program has multiple granularities of
+  * High failure environments include applications such as web UIs or user
+    oriented applications. Some operational, analytical data pipelines also fall
+    into thas category. Batch oriented data pipelines probably do not fall into
+    this category as often.
+* If you are working on batch oriented programs whose failure model is to
+recover by restarting the program, the explicit `E` is less important.
+* Errors should be handled at units-of-work (roughly speaking) such as the
+"record processing level" or the program level. An explicit `E` helps you manage
+errors across units-of-work if your program has multiple granularities of
 units-of-work.
 * dotty's sum types will make ZIO more useful.
-* Given that `E` allows you to not jump the stack, it forces your code to be
-  referentially transparent when that is important in your architecture.
-* ZIO does not preclude you jumping the stack if you want to still handle things
-  the traditional way.
+* Given that `E` allows you to explicityl handle errors in a certain layer (and
+  not jump the stack), it forces your code to be referentially transparent when
+  that is important in your architecture. Throwing exception causes a function
+  to lose referential transparency.
+* ZIO does not preclude you from jumping the stack if you want to still handle
+  exceptions the traditional way so don't lose this type of flexbility if you
+  want it.
 
 Probably the most important conclusion is that a type parameter `E` in `IO`
-gives you an option of handling errors differently *if* you want to. So choices
-are good given that it is not overly complicated.
+gives you an option of handling errors differently *if* you want to. Generally,
+choices are good assuming the increase in complexity is not large. The tests
+suggest that the complexity is moderate and can become learned behavior.
