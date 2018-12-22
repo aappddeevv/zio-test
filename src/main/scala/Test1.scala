@@ -35,6 +35,4 @@ object Test1 {
     (s, respopt) => IO.fail(ClientBackendError(s)),
     answers.get
   )
-
-
 }
