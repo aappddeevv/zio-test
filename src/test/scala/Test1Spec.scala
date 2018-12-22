@@ -42,14 +42,14 @@ class Test1Spec
     ioa.expectFailure(ExitResult.Cause.checked(ClientError("bad status")))
   }
 
-  it should "3: expect error if not 200 in expectOr" in {
+  it should "3: expect ClientError for unexpected status" in {
     val ioa = backendClient3.expectOr[String](bad, decoders.passthrough _)(
       (s, resp) => IO.fail(ClientError(s))
     ).flatMap(bodystr => IO.now(bodystr shouldBe ""))
     ioa.expectFailure(ExitResult.Cause.checked(ClientError("bad status")))
   }
 
-  it should "3: expect backend error in expectOr" in {
+  it should "3: expect ClientBackendError for comm failure" in {
     val ioa = backendClient3.expectOr[String](notInAnswers, decoders.passthrough _)(
       (s, resp) => IO.fail(ClientError(s))
     ).flatMap(bodystr => IO.now(bodystr shouldBe ""))

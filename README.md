@@ -45,7 +45,11 @@ Findings:
   interface into code that throws exceptions for errors. If you don't trap the
   throws there, the upper layers require even more thought. This is a statement
   that says reasoning about your code is easier if errors are explicit values.
-
+* If one layer of software returns Either, trying to be functional, but other
+  layers return Throwable, you can merge these types together through value
+  conversion. The opposite direction conversion is also possible. If you did not
+  have IO[E,A], you would only have the ability to convert to a Throwable sum
+  type.
 
 ## Test 2
 

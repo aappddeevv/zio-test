@@ -5,6 +5,7 @@ import scalaz.zio._
 import ziotest.http._
 
 case class ODataError(op: String, message: String, response: Option[HttpResponse])
+case class ODataErrorAsThrowable(message: String) extends RuntimeException(message)
 
 trait ODataClient[E] {
   // return the new object content as a string, like a JSON string
