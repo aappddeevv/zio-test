@@ -1,7 +1,6 @@
 package ziotest
 
 import scala.concurrent._
-import ExecutionContext.Implicits.global
 
 import org.scalatest._
 import scalaz.zio._
@@ -11,8 +10,10 @@ import odata._
 import http._
 import backend._
 
+import ttg.scalaz.zio._
+
 class Test1Spec
-    extends ZIOTestSpec
+    extends AbstractZIOTestSpec
     with OptionValues
     with Matchers {
 
@@ -26,18 +27,17 @@ class Test1Spec
   }
 
   it should "fail on an unanswerable request" in {
-    val ioa = backendClient.fetch(HttpRequest("GET", "/blah", Map(), "")) { r =>
+    val ioa = backendClient.fetch(notInAnswers) { r =>
       IO.now(r.body shouldBe "")
     }
-    ioa.toTestFuture
+    ioa.expectFailure
   }
 
-  it should "fail1" in {
-    Future.failed(new RuntimeException("blah"))
-  }
-
-  it should "fail2" in {
-    Future.successful(fail)
+  it should "expect error if not 200 in expectOr" in {
+    val ioa = backendClient2.expectOr[String](bad, decoders.passthrough _)(
+      (s, resp) => IO.fail(ClientError(s, None))
+    ).flatMap(bodystr => IO.now(bodystr shouldBe ""))
+    ioa.expectFailure(ExitResult.Cause.checked(ClientError("bad status", None)))
   }
 
 }

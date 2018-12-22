@@ -5,7 +5,7 @@ import scalaz.zio._
 import ExitResult.Cause
 
 // useful error type, you don't have to use it.
-class ClientError(message: String, cause: Option[Throwable])
+case class ClientError(message: String, cause: Option[Throwable])
 
 abstract sealed trait Message {
   def headers: Map[String, String]
@@ -18,7 +18,7 @@ case class HttpResponse(status: Int, headers: Map[String, String], body: String)
 
 /** Simple client based on http4s. */
 trait Client[E] {
-  def fetch[A](request: HttpRequest)(handler: HttpResponse => IO[E, A]): IO[E, A]
+  def fetch[A](request: HttpRequest)(handler: HttpResponse => IO[E, A]): IO[E,A]
   // expect status = 200, if not, apply orElse.
   // decoder applied only if 200 response received.
   // orElse applied only if non-200 response received.
@@ -40,14 +40,13 @@ object Client {
   // Run is the service to change a request to a response.
   // mkError allows us to customize error making for E
   def apply[E](
-    run: HttpRequest => IO[E, HttpResponse],
-    mkError: (String, Option[HttpResponse]) => IO[E,Nothing]
-  ): Client[E] = new DefaultClient(run, mkError)
+    run: HttpRequest => IO[E, HttpResponse]
+      //,mkError: (String, Option[HttpResponse]) => IO[E,Nothing]
+  ): Client[E] = new DefaultClient(run)
 }
 
 private [http] class DefaultClient[E](
-  run: HttpRequest => IO[E, HttpResponse],
-  mkError: (String, Option[HttpResponse]) => IO[E,Nothing]
+  run: HttpRequest => IO[E, HttpResponse]
 ) extends Client[E] {
   import scala.util.Try
 
@@ -58,7 +57,7 @@ private [http] class DefaultClient[E](
     orElse: (String, HttpResponse) => IO[E, A]): IO[E, A] = {
     fetch(request){
       case goodResponse if goodResponse.status == 200 => decoder(goodResponse)
-      case badResponse => mkError("received bad response", Option(badResponse))
+      case badResponse => orElse("bad status", badResponse)
     }
   }
 

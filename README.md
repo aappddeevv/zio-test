@@ -1,12 +1,14 @@
 # ZIO bifunctor testbed
 
 Does ZIO's bifunctor design offer a better abstraction? And if so, when does
-work best?
+it work best?
 
-This repo is a simple testbed to explore that question.
+This repo is a simple, quick testbed to explore a few questions around zio.
 
-Everything assumes the ZIO IO so there are no `F` parameters in the algebras,
+All the code assumes the ZIO IO so there are no `F` parameters in the algebras,
 only an `E` parameter.
+
+Tests are written in scalatest so there really is no useful main.
 
 
 ## Test1 - Multi-layer web client.
@@ -22,7 +24,7 @@ layers together and have precise error types.
 * Client: Uses the lowest level layer to provide a friendly API.
 * OData: An OData 4.0 REST client, totally fake as well.
 
-Conclusions:
+Findings:
 * Without proper sum types, you cannot merge the error types from the different
   layers upward to the topmost layer if you wanted to, so its a bit more
   difficult to "combine" error types to handle at the top.
@@ -39,7 +41,12 @@ Conclusions:
 * It's not strictly necessary to parameterize on `E` but if you parameterize on
   `E`, you need to provide the ability to create an `E` (which is what the
   `mkError` functions do in each layer).
-  
+* Wow! It's complex to think through the outer layers of your API where you
+  interface into code that throws exceptions for errors. If you don't trap the
+  throws there, the upper layers require even more thought. This is a statement
+  that says reasoning about your code is easier if errors are explicit values.
+
+
 ## Test 2
 
 ...TBD...
@@ -74,3 +81,6 @@ Probably the most important conclusion is that a type parameter `E` in `IO`
 gives you an option of handling errors differently *if* you want to. Generally,
 choices are good assuming the increase in complexity is not large. The tests
 suggest that the complexity is moderate and can become learned behavior.
+
+On a separate note, integrating ZIO into a cats-core based application appears
+to be difficult.
