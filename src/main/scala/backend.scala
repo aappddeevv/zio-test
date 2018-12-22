@@ -17,10 +17,13 @@ case class BackendErrorAsThrowable(message: String) extends RuntimeException(mes
 object Backend {
 
   type Answers = HttpRequest => Option[HttpResponse]
+  val message = "request not found in answers (comm failure)"
 
-  // Supply error maker and responses to requests explicitly...totally faking it :-)
-  // We could have used PartialFunction but wanted mkError to be a separate function.
-  // mkError allows us to customize error making for E.
+  // Supply error maker and responses to requests explicitly...totally faking it
+  // :-). We could have used PartialFunction but wanted mkError to be a separate
+  // function. mkError allows us to customize error making for E. mkError here
+  // is really for "communications errors" where we do not get a response at
+  // all!
   def apply[E](
     mkError: (String, Option[HttpResponse]) => IO[E,Nothing],
     answers: Answers
@@ -28,7 +31,7 @@ object Backend {
     def service(request: HttpRequest): IO[E, HttpResponse] = {
       answers(request) match {
         case Some(resp) => IO.now(resp)
-        case _ => mkError("request not found in answers, consider this a communications failure", None)
+        case _ => mkError(message, None)
       }
     }
     Client(service)

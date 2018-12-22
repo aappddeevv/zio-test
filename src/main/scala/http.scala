@@ -5,7 +5,10 @@ import scalaz.zio._
 import ExitResult.Cause
 
 // useful error type, you don't have to use it.
-case class ClientError(message: String, cause: Option[Throwable])
+sealed trait ClientErrorBase
+case class ClientError(message: String) extends ClientErrorBase
+case class ClientBackendError(message: String) extends ClientErrorBase
+case class ClientErrorAsThrowable(message:String) extends RuntimeException(message)
 
 abstract sealed trait Message {
   def headers: Map[String, String]

@@ -20,7 +20,7 @@ object ODataClient {
     IO.fail(ODataError(op, message, Option(response)))
 
   // Client changes request => response.
-  // mkError allows us to customize error making for E.
+  // mkError allows us to customize the expectOr errors, not communication errors.
   def apply[E](
     client: Client[E],
     mkError: (String, HttpResponse) => IO[E, Nothing]

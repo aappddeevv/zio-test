@@ -15,17 +15,26 @@ object Test1 {
     bad -> HttpResponse(500, Map(), "")
   )
 
-  // all errors are "communication" backend errors
-  // using expectOr one layer up, is forced into backend error
-  val backendClient = Backend[BackendError](
+  // all errors are "communication" backend errors.
+  // using expectOr one layer up, is forced into backend error.
+  val backendClient0 = Backend[BackendError](
     (s, respopt) => IO.fail(BackendError(s)),
     answers.get
   )
 
-  // all errors are forced into ClientErrors, including
-  // errors from the lower level.
+  // all low level errors are forced into ClientError.
+  // expectOr errors are also forced into ClientError.
   val backendClient2 = Backend[ClientError](
-    (s,respopt) => IO.fail(ClientError(s, None)),
+    (s,respopt) => IO.fail(ClientError(s)),
     answers.get
   )
+
+  // low level errors are ClientBackendError but
+  // expectOr errors can be ClientError on per call basis
+  val backendClient3 = Backend[ClientErrorBase](
+    (s, respopt) => IO.fail(ClientBackendError(s)),
+    answers.get
+  )
+
+
 }

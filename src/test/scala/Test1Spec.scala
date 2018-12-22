@@ -19,25 +19,42 @@ class Test1Spec
 
   import Test1._
 
-  "backend" should "do a simple response" in {
-    val ioa = backendClient.fetch(good){ r =>
+  "backend" should "0: do a simple response" in {
+    val ioa = backendClient0.fetch(good){ r =>
       IO.now(r.body shouldBe "")
     }
     ioa.toTestFuture
   }
 
-  it should "fail on an unanswerable request" in {
-    val ioa = backendClient.fetch(notInAnswers) { r =>
+  it should "0: fail on an unanswerable request" in {
+    val ioa = backendClient0.fetch(notInAnswers) { r =>
       IO.now(r.body shouldBe "")
     }
-    ioa.expectFailure
+    ioa.expectFailure(
+      ExitResult.Cause.checked(BackendError(Backend.message))
+    )
   }
 
-  it should "expect error if not 200 in expectOr" in {
+  it should "2: expect error if not 200 in expectOr" in {
     val ioa = backendClient2.expectOr[String](bad, decoders.passthrough _)(
-      (s, resp) => IO.fail(ClientError(s, None))
+      (s, resp) => IO.fail(ClientError(s))
     ).flatMap(bodystr => IO.now(bodystr shouldBe ""))
-    ioa.expectFailure(ExitResult.Cause.checked(ClientError("bad status", None)))
+    ioa.expectFailure(ExitResult.Cause.checked(ClientError("bad status")))
   }
+
+  it should "3: expect error if not 200 in expectOr" in {
+    val ioa = backendClient3.expectOr[String](bad, decoders.passthrough _)(
+      (s, resp) => IO.fail(ClientError(s))
+    ).flatMap(bodystr => IO.now(bodystr shouldBe ""))
+    ioa.expectFailure(ExitResult.Cause.checked(ClientError("bad status")))
+  }
+
+  it should "3: expect backend error in expectOr" in {
+    val ioa = backendClient3.expectOr[String](notInAnswers, decoders.passthrough _)(
+      (s, resp) => IO.fail(ClientError(s))
+    ).flatMap(bodystr => IO.now(bodystr shouldBe ""))
+    ioa.expectFailure(ExitResult.Cause.checked(ClientBackendError(Backend.message)))
+  }
+
 
 }
