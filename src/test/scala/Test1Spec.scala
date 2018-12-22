@@ -72,13 +72,14 @@ class Test1Spec
     }
     // Normally we would dhave add an IO[Assertion] and would not know if errors
     // had been handled or not. Even if it was IO[Either[E, Assertion]] the IO
-    // could still have an error and we would have to check.
+    // could still have an error and we would have to check. Assuming the types
+    // do not lie, I would be much more confident that the error handling is
+    // complete in ioa2 above.
  
     // if E or A update the UI as needed
     // ...
 
     ioa2.expectFailure
   }
-
 
 }

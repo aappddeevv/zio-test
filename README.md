@@ -50,6 +50,8 @@ Findings:
   conversion. The opposite direction conversion is also possible. If you did not
   have IO[E,A], you would only have the ability to convert to a Throwable sum
   type.
+* Type signatures is much more clear that the errors have been handled when
+  using ZIO and that the effect is not hiding an error somewhere.
 
 ## Test 2
 
