@@ -29,11 +29,13 @@ trait Client[E] {
   def expectOr[A](request: HttpRequest, decoder: HttpResponse => IO[E,A])(
     orElse: (String, HttpResponse) => IO[E,A]): IO[E, A]
 
-  // Like expectOr but explicitly handles throws, no lying in the API
+  // Like expectOr but explicitly handles throws, no lying in the API.  Does
+  // this API maake sense? The decoder should guarantee that the IO handles any
+  // throws underneath and reflected in E?
   def expectOr[A](
     request: HttpRequest,
     decoder: HttpResponse => IO[E,A],
-    handler: Throwable => Cause[E]
+    handler: Throwable => E
   )(
     orElse: (String, HttpResponse) => IO[E,A]
   ): IO[E,A]
@@ -54,7 +56,7 @@ private [http] class DefaultClient[E](
   import scala.util.Try
 
   def fetch[A](request: HttpRequest)(handler: HttpResponse => IO[E,A]): IO[E, A] =
-    run(request).flatMap(handler)
+    run(request).flatMap(handlerlinux chrome aand pwas)
 
   def expectOr[A](request: HttpRequest, decoder: HttpResponse => IO[E, A])(
     orElse: (String, HttpResponse) => IO[E, A]): IO[E, A] = {
@@ -68,14 +70,14 @@ private [http] class DefaultClient[E](
     request: HttpRequest,
     decoder: HttpResponse => IO[E,A],
     // we make this explicit in this part of the API
-    handler: Throwable => Cause[E]
+    handler: Throwable => E
   )(
     orElse: (String, HttpResponse) => IO[E,A]
   ): IO[E,A] = {
     // fromTry gives us: IO[Throwable, IO[E,O]]
     IO.fromTry[IO[E,A]](Try(expectOr[A](request, decoder)(orElse))).attempt.flatMap {
       case Right(a) => a
-      case Left(e) => IO.fail0(handler(e))
+      case Left(e) => IO.fail(handler(e))
     }
   }
 

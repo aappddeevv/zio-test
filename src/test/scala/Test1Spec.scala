@@ -78,7 +78,6 @@ class Test1Spec
  
     // if E or A update the UI as needed
     // ...
-
     ioa2.expectFailure
   }
 
